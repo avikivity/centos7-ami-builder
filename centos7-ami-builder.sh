@@ -203,57 +203,6 @@ install_packages() {
 	gpgcheck=1
 	enabled=0
 	gpgkey=http://mirror.centos.org/centos/RPM-GPG-KEY-CentOS-7
-
-	[epel]
-	name=Extra Packages for Enterprise Linux 7 - \$basearch
-	#baseurl=http://download.fedoraproject.org/pub/epel/7/\$basearch
-	mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=\$basearch
-	failovermethod=priority
-	enabled=1
-	gpgcheck=0
-	gpgkey=http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
-
-	[epel-debuginfo]
-	name=Extra Packages for Enterprise Linux 7 - \$basearch - Debug
-	#baseurl=http://download.fedoraproject.org/pub/epel/7/\$basearch/debug
-	mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-debug-7&arch=\$basearch
-	failovermethod=priority
-	enabled=0
-	gpgkey=http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
-	gpgcheck=1
-
-	[epel-source]
-	name=Extra Packages for Enterprise Linux 7 - \$basearch - Source
-	#baseurl=http://download.fedoraproject.org/pub/epel/7/SRPMS
-	mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-source-7&arch=\$basearch
-	failovermethod=priority
-	enabled=0
-	gpgkey=http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
-	gpgcheck=1
-
-	[elrepo]
-	name=ELRepo.org Community Enterprise Linux Repository - el7
-	baseurl=http://elrepo.org/linux/elrepo/el7/\$basearch/
-			http://mirrors.coreix.net/elrepo/elrepo/el7/\$basearch/
-			http://jur-linux.org/download/elrepo/elrepo/el7/\$basearch/
-			http://repos.lax-noc.com/elrepo/elrepo/el7/\$basearch/
-			http://mirror.ventraip.net.au/elrepo/elrepo/el7/\$basearch/
-	mirrorlist=http://mirrors.elrepo.org/mirrors-elrepo.el7
-	enabled=1
-	gpgcheck=1
-	gpgkey=https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
-
-	[elrepo-kernel]
-	name=ELRepo.org Community Enterprise Linux Kernel Repository - el7
-	baseurl=http://elrepo.org/linux/kernel/el7/\$basearch/
-			http://mirrors.coreix.net/elrepo/kernel/el7/\$basearch/
-			http://jur-linux.org/download/elrepo/kernel/el7/\$basearch/
-			http://repos.lax-noc.com/elrepo/kernel/el7/\$basearch/
-			http://mirror.ventraip.net.au/elrepo/kernel/el7/\$basearch/
-	mirrorlist=http://mirrors.elrepo.org/mirrors-elrepo-kernel.el7
-	enabled=1
-	gpgcheck=1
-	gpgkey=https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
 	EOT
 
 	# Install base pacakges
@@ -262,10 +211,9 @@ install_packages() {
 
 	# Install additional packages that we are definitely going to want
 	yum --config=$YUM_CONF --installroot=$AMI_MNT --assumeyes install \
-        psmisc grub2 dhclient ntp e2fsprogs sudo elrepo-release kernel-ml \
-		openssh-clients vim-minimal postfix yum-plugin-fastestmirror sysstat \
-		epel-release python-setuptools gcc make xinetd rsyslog microcode_ctl \
-		gnupg2 bzip2 cloud-utils-growpart cloud-init openssh-server
+        psmisc grub2 dhclient ntp sudo kernel openssh-clients vim-minimal \
+		yum-plugin-fastestmirror sysstat rsyslog microcode_ctl \
+		cloud-utils-growpart cloud-init openssh-server
 
 	# Remove unnecessary RPMS
 	yum --config=$YUM_CONF --installroot=$AMI_MNT --assumeyes erase \
@@ -339,7 +287,7 @@ setup_network() {
 install_grub() {
 	
 	AMI_BOOT_PATH=$AMI_MNT/boot
-	AMI_KERNEL_VER=$(ls $AMI_BOOT_PATH | egrep -o '4\..*' | head -1)
+	AMI_KERNEL_VER=$(ls $AMI_BOOT_PATH | egrep -o '3\..*' | head -1)
 
 	# Install our grub.conf for only the PV machine, as it is needed by PV-GRUB
 	if [[ $AMI_TYPE == "pv" ]]; then

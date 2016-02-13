@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REQUIRED_RPMS=(yum-plugin-fastestmirror ruby ruby-devel kpartx)
+REQUIRED_RPMS=(yum-plugin-fastestmirror ruby ruby-devel kpartx jq)
 CFG_FILE=$HOME/.centos-ami-builder
 
 ## Builder functions ########################################################
@@ -17,9 +17,11 @@ build_ami() {
 	install_grub
 	enter_shell
 	unmount_all
-	bundle_ami
-	upload_ami
-	register_ami
+	if [ "$1" == "s3" ]; then
+		bundle_ami
+		upload_ami
+		register_ami
+	fi
 	quit
 }
 
@@ -581,6 +583,8 @@ sanity_check() {
 # Install RPMs required by setup
 install_setup_rpms() {
 
+	yum -y install epel-release
+
 	RPM_LIST=/tmp/rpmlist.txt
 	
 	# dump rpm list to disk
@@ -634,22 +638,36 @@ case "$1" in
 	reconfig)
 		get_config_opts
 		;;
-	pv)
+	pv-s3)
 		AMI_NAME=${2// /_}
 		AMI_TYPE=pv
-		[[ -z $AMI_NAME ]] && quit "Usage: $0 pv <pv_name>"
+		[[ -z $AMI_NAME ]] && quit "Usage: $0 pv-s3 <pv_name>"
 		do_setup
-		build_ami
+		build_ami s3
 		;;
-	hvm)
+	hvm-s3)
 		AMI_NAME=${2// /_}
 		AMI_TYPE=hvm
-		[[ -z $AMI_NAME ]] && quit "Usage: $0 hvm <hvm_name>"
+		[[ -z $AMI_NAME ]] && quit "Usage: $0 hvm-s3 <hvm_name>"
 		do_setup
-		build_ami
+		build_ami s3
+		;;
+	pv-ebs)
+		AMI_NAME=${2// /_}
+		AMI_TYPE=pv
+		[[ -z $AMI_NAME ]] && quit "Usage: $0 pv-ebs <pv_name>"
+		do_setup
+		build_ami ebs
+		;;
+	hvm-ebs)
+		AMI_NAME=${2// /_}
+		AMI_TYPE=hvm
+		[[ -z $AMI_NAME ]] && quit "Usage: $0 hvm-ebs <hvm_name>"
+		do_setup
+		build_ami ebs
 		;;
 	*)
-		quit "Usage: $0 <reconfig | pv PV_NAME | hvm HVM_NAME> [debug]"
+		quit "Usage: $0 <reconfig | pv-s3 PV_NAME | hvm-s3 HVM_NAME | pv-ebs PV_NAME | hvm-ebs HVM_NAME> [debug]"
 esac
 
 # vim: tabstop=4 shiftwidth=4 expandtab
